@@ -1,0 +1,1 @@
+ASCEND_RT_VISIBLE_DEVICES=4 python3 -m sglang.launch_server   --model-path /data1/models/bge-m3   --host 0.0.0.0   --disable-radix-cache   --chunked-prefill-size -1   --attention-backend ascend   --is-embedding   --port 30000
