@@ -1,18 +1,23 @@
-import requests
+from transformers import AutoTokenizer
 
-url = "http://127.0.0.1:8080/generate"
-payload = {
-    "text": "<|user|>\n介绍一下大模型对齐\n<|assistant|>\n大模型对齐通过奖励模型和RLHF，让模型输出符合人类偏好。",
-    "sampling_params": {
-        "max_new_tokens": 1,
-        "temperature": 0
-    },
-    "return_logits": True
-}
+PROMPT = (
+    "What is the range of the numeric output of a sigmoid node in a neural network?"
+)
 
-response = requests.post(url, json=payload)
-result = response.json()
+RESPONSE1 = "The output of a sigmoid node is bounded between -1 and 1."
+RESPONSE2 = "The output of a sigmoid node is bounded between 0 and 1."
 
-# 正确提取奖励分数
-reward_score = result["logits"][0][0]
-print(f"奖励分数：{reward_score}")
+CONVS = [
+    [{"role": "user", "content": PROMPT}, {"role": "assistant", "content": RESPONSE1}],
+    [{"role": "user", "content": PROMPT}, {"role": "assistant", "content": RESPONSE2}],
+]
+
+tokenizer = AutoTokenizer.from_pretrained("Skywork/Skywork-Reward-Llama-3.1-8B-v0.2")
+prompts = tokenizer.apply_chat_template(CONVS, tokenize=False, return_dict=False)
+
+url = f"http://localhost:{port}/classify"
+data = {"model": "Skywork/Skywork-Reward-Llama-3.1-8B-v0.2", "text": prompts}
+
+responses = requests.post(url, json=data).json()
+for response in responses:
+    print_highlight(f"reward: {response['embedding'][0]}")
